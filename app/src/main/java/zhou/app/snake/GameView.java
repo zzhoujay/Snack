@@ -8,8 +8,6 @@ import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import com.squareup.otto.Subscribe;
-
 /**
  * Created by zhou on 16-1-4.
  */
@@ -20,6 +18,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     private final SurfaceHolder holder;
     private boolean gameRunning;
     private Paint paint;
+    private Snack snack;
+    private int colNum, rowNum, blockSize;
 
     public GameView(Context context) {
         this(context, null, 0);
@@ -39,6 +39,13 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+
+        colNum = 40;
+        blockSize = getWidth() / colNum;
+        rowNum = getHeight() / blockSize;
+
+        snack = new Snack(KeyMap.up.direction, blockSize, Color.RED);
+
         gameRunning = true;
         startGameThread();
     }
@@ -50,21 +57,20 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+        App.getApp().getBus().unregister(snack);
         stopGameThread();
     }
 
-    private int x = 0;
+    private long ggt;
 
     public void drawGame(Canvas canvas) {
-        canvas.drawRect(x * 10, x * 10, x * 10 + 200, x * 10 + 200, paint);
-        x++;
+        snack.draw(canvas);
+
+        if (System.currentTimeMillis() - ggt > 100) {
+            snack.next();
+            ggt = System.currentTimeMillis();
+        }
     }
-
-    @Subscribe
-    private void keyEventHandle(KeyMap keyMap) {
-
-    }
-
 
     private Thread startGameThread() {
         Thread thread = new Thread(drawThread);
