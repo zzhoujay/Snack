@@ -1,7 +1,9 @@
 package zhou.app.snake;
 
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
@@ -15,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
     private int lastX = 0;
     private int lastY = 0;
     private long lastTime;
+    private boolean exitFlag;
 
 
     @Override
@@ -41,37 +44,24 @@ public class MainActivity extends AppCompatActivity {
                 handleTouchEvent(vx, vy);
                 return true;
         }
-//        if (event.getAction() == MotionEvent.ACTION_MOVE) {
-//            int x = (int) event.getX();
-//            int y = (int) event.getY();
-//
-//            int dx = x - lastX;
-//            int dy = y - lastY;
-//
-//            int absX = Math.abs(dx);
-//            int absY = Math.abs(dy);
-//            if (absX > absY) {
-//                if (absX > 50) {
-//                    if (dx > 0) {
-//                        App.getApp().getBus().post(KeyMap.right);
-//                    } else {
-//                        App.getApp().getBus().post(KeyMap.left);
-//                    }
-//                }
-//            } else {
-//                if (absY > 50) {
-//                    if (dy > 0) {
-//                        App.getApp().getBus().post(KeyMap.down);
-//                    } else {
-//                        App.getApp().getBus().post(KeyMap.up);
-//                    }
-//                }
-//            }
-//
-//            lastX = x;
-//            lastY = y;
-//        }
         return super.onTouchEvent(event);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (exitFlag) {
+                finish();
+            }else {
+                Toast.makeText(this,R.string.notice_exit,Toast.LENGTH_SHORT).show();
+                exitFlag=true;
+                new Handler().postDelayed(()->{
+                    exitFlag=false;
+                },2000);
+            }
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     private void handleTouchEvent(float vx, float vy) {

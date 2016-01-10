@@ -21,6 +21,8 @@ public class Snack {
 
     public int color;
 
+    private boolean growFrag;
+
     public Snack(Point direction, int size, int color) {
         this.direction = direction;
         this.size = size;
@@ -45,15 +47,31 @@ public class Snack {
 
     public void next() {
         Point temp = null;
-        for (int i = positions.size() - 1; i >= 0; i--) {
+        Point tempGrow = null;
+        int size = positions.size();
+        for (int i = size - 1; i >= 0; i--) {
             Point p = positions.get(i);
             if (i == 0) {
                 p.set(temp.x + direction.x, temp.y + direction.y);
+            } else if (growFrag && i == size - 1) {
+                tempGrow = new Point(p);
             } else {
                 temp = positions.get(i - 1);
                 p.set(temp.x, temp.y);
             }
         }
+        if (growFrag && tempGrow != null) {
+            growFrag = false;
+            positions.add(tempGrow);
+        }
+    }
+
+    public void growUp() {
+        growFrag = true;
+    }
+
+    public int length() {
+        return positions.size();
     }
 
     @Subscribe

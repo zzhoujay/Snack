@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Snake</string>
+    <string name="notice_exit">再按一次退出</string>
 </resources>
