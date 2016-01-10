@@ -46,7 +46,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         snack = new Snack(KeyMap.up.direction, blockSize, Color.RED);
 
         gameRunning = true;
-        drawThread = new DrawThread(holder);
+        drawThread = new DrawThread(holder, 30, Color.WHITE, true);
 
         drawThread.addTask(this::drawGame, 0);
 

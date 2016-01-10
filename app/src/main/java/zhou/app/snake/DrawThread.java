@@ -2,6 +2,8 @@ package zhou.app.snake;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.support.annotation.NonNull;
 import android.view.SurfaceHolder;
 
@@ -17,26 +19,41 @@ public final class DrawThread implements Runnable {
 
 
     private final int interval_time;
-    private boolean running;
     private final SurfaceHolder holder;
     private final int refreshColor;
+    private final boolean showFps;
 
     private final List<Task> tasks;
+    private Rect fpsRect;
+    private boolean running;
+    private Paint fpsPaint;
+    private long lastTime;
 
-    public DrawThread(SurfaceHolder holder, int fps, int refreshColor) {
+
+    public DrawThread(SurfaceHolder holder, int fps, int refreshColor, boolean showFps) {
         this.holder = holder;
         tasks = new ArrayList<>();
         running = true;
         interval_time = 1000 / fps;
         this.refreshColor = refreshColor;
+        this.showFps = showFps;
+        Rect rect = holder.getSurfaceFrame();
+        fpsRect = new Rect(rect.right - 200, 0, rect.right, 100);
+        fpsPaint = new Paint();
+        fpsPaint.setColor(Color.BLACK);
+        fpsPaint.setTextSize(32);
     }
 
     public DrawThread(SurfaceHolder holder, int fps) {
-        this(holder, fps, Color.WHITE);
+        this(holder, fps, Color.WHITE, false);
     }
 
     public DrawThread(SurfaceHolder holder) {
-        this(holder, 30, Color.WHITE);
+        this(holder, 30, Color.WHITE, false);
+    }
+
+    public DrawThread(SurfaceHolder holder, int fps, int refreshColor) {
+        this(holder, fps, refreshColor, false);
     }
 
     @Override
@@ -46,6 +63,7 @@ public final class DrawThread implements Runnable {
 
             synchronized (holder) {
                 synchronized (tasks) {
+
                     Canvas canvas = holder.lockCanvas();
                     if (canvas != null) {
                         canvas.drawColor(refreshColor);
@@ -55,6 +73,8 @@ public final class DrawThread implements Runnable {
                             }
                             task.draw(canvas);
                         }
+                        if (showFps)
+                            drawFps(canvas);
                         holder.unlockCanvasAndPost(canvas);
                     }
                 }
@@ -63,11 +83,20 @@ public final class DrawThread implements Runnable {
 
             long endTime = System.currentTimeMillis();
 
-            while (endTime - startTime < interval_time) {
+            while (endTime - startTime <= interval_time) {
                 endTime = System.currentTimeMillis();
                 Thread.yield();
             }
         }
+    }
+
+    private void drawFps(Canvas canvas) {
+        long currTime = System.currentTimeMillis();
+        if (lastTime != 0) {
+            int fps = (int) (currTime - lastTime);
+            canvas.drawText(String.format("fps:%d", fps), fpsRect.centerX(), fpsRect.centerY(), fpsPaint);
+        }
+        lastTime = currTime;
     }
 
     public void finish() {
