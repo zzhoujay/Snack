@@ -6,9 +6,6 @@ import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import rx.functions.Action0;
-import zhou.app.snake.interfaces.Drawable;
-
 /**
  * Created by zhou on 16-1-4.
  */
@@ -50,6 +47,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         drawThread.addDrawTask(gameMap, 0);
 
         drawThread.addActionTask(snack, 1, 100);
+
+        drawThread.addActionTask(gameMap, 90);
 
         startGameThread();
 

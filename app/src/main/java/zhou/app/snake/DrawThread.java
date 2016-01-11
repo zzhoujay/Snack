@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 
 import rx.functions.Action0;
+import zhou.app.snake.interfaces.Callable;
 import zhou.app.snake.interfaces.Drawable;
 
 /**
@@ -152,15 +153,15 @@ public final class DrawThread implements Runnable {
         Collections.sort(actionTasks);
     }
 
-    public void addActionTask(Action0 task, int priority, int intervalTime) {
+    public void addActionTask(Callable task, int priority, int intervalTime) {
         addActionTask(new ActionTask(task, priority, intervalTime));
     }
 
-    public void addActionTask(Action0 task, int priority) {
+    public void addActionTask(Callable task, int priority) {
         addActionTask(new ActionTask(task, priority));
     }
 
-    public void addActionTask(Action0 task) {
+    public void addActionTask(Callable task) {
         addActionTask(new ActionTask(task));
     }
 
@@ -240,25 +241,25 @@ public final class DrawThread implements Runnable {
         }
     }
 
-    private static class ActionTask implements Action0, Comparable<ActionTask> {
+    private static class ActionTask implements Callable, Comparable<ActionTask> {
 
-        private Action0 action;
+        private Callable action;
         private int priority;
         private int intervalTime;
 
         private long lastCallTime;
 
-        public ActionTask(Action0 action, int priority, int intervalTime) {
+        public ActionTask(Callable action, int priority, int intervalTime) {
             this.action = action;
             this.priority = priority;
             this.intervalTime = intervalTime;
         }
 
-        public ActionTask(Action0 action, int priority) {
+        public ActionTask(Callable action, int priority) {
             this(action, priority, -1);
         }
 
-        public ActionTask(Action0 action) {
+        public ActionTask(Callable action) {
             this(action, 0, -1);
         }
 
