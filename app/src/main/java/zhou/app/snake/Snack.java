@@ -69,6 +69,10 @@ public class Snack implements Drawable {
         }
     }
 
+    public void setSize(int size) {
+        this.size = size;
+    }
+
     public void growUp() {
         growFrag = true;
     }

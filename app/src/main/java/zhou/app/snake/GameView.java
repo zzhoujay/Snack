@@ -1,9 +1,7 @@
 package zhou.app.snake;
 
 import android.content.Context;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -13,12 +11,9 @@ import android.view.SurfaceView;
  */
 public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
-    private final SurfaceHolder holder;
-    private boolean gameRunning;
-    private Paint paint;
-    private Snack snack;
-    private int colNum, rowNum, blockSize;
     private DrawThread drawThread;
+
+    private GameMap gameMap;
 
     public GameView(Context context) {
         this(context, null, 0);
@@ -30,25 +25,26 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     public GameView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        holder = getHolder();
+        SurfaceHolder holder = getHolder();
         holder.addCallback(this);
-        paint = new Paint();
-        paint.setColor(Color.RED);
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
 
-        colNum = 40;
-        blockSize = getWidth() / colNum;
-        rowNum = getHeight() / blockSize;
+        int colNum = 40;
+        int blockSize = getWidth() / colNum;
+        int rowNum = getHeight() / blockSize;
 
-        snack = new Snack(KeyMap.up.direction, blockSize, Color.RED);
+        gameMap = new GameMap(colNum, rowNum, blockSize);
 
-        gameRunning = true;
+        Snack snack = new Snack(KeyMap.up.direction, blockSize, Color.RED);
+
+        gameMap.setSnack(snack);
+
         drawThread = new DrawThread(holder, 30, Color.WHITE, true);
 
-        drawThread.addTask(this::drawGame, 0);
+        drawThread.addTask(gameMap, 0);
 
         startGameThread();
 
@@ -56,24 +52,16 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        int colNum = 40;
+        int blockSize = width / colNum;
+        int rowNum = height / blockSize;
 
+        gameMap.resetSize(colNum, rowNum, blockSize);
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        App.getApp().getBus().unregister(snack);
         stopGameThread();
-    }
-
-    private long ggt;
-
-    public void drawGame(Canvas canvas) {
-        snack.draw(canvas);
-
-        if (System.currentTimeMillis() - ggt > 100) {
-            snack.next();
-            ggt = System.currentTimeMillis();
-        }
     }
 
     private Thread startGameThread() {

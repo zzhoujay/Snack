@@ -42,6 +42,10 @@ public class Food implements Drawable {
     }
 
 
+    public void setSize(int size) {
+        this.blockSize = size;
+    }
+
     @Override
     public void draw(Canvas canvas) {
         canvas.drawRect(position.x, position.y, position.x + blockSize, position.y + blockSize, paint);
