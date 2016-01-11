@@ -103,8 +103,20 @@ public final class DrawThread implements Runnable {
         running = false;
     }
 
+    public void addTask(Action1<Canvas> task, int priority, int intervalTime) {
+        tasks.add(new Task(task, priority, intervalTime));
+    }
+
     public void addTask(Action1<Canvas> task, int priority) {
         tasks.add(new Task(task, priority));
+    }
+
+    public void addTask(Action1<Canvas> task) {
+        tasks.add(new Task(task));
+    }
+
+    public void addTask(Task task) {
+        tasks.add(task);
     }
 
     public void removeTask(Action1<Canvas> task) {
@@ -116,23 +128,42 @@ public final class DrawThread implements Runnable {
         }
     }
 
+    public void removeTask(Task task) {
+        tasks.remove(task);
+    }
+
     private static class Task implements Comparable<Task> {
 
         public Action1<Canvas> action;
         public int priority;
+        public int intervalTime;
+
+        private long lastCallTime;
+
+        public Task(Action1<Canvas> action, int priority, int intervalTime) {
+            this.action = action;
+            this.priority = priority;
+            this.intervalTime = intervalTime;
+        }
 
         public Task(Action1<Canvas> action, int priority) {
             this.action = action;
             this.priority = priority;
+            intervalTime = 100 / 3;
         }
 
         public Task(Action1<Canvas> action) {
             this.action = action;
             priority = 0;
+            intervalTime = 100 / 3;
         }
 
         public void draw(Canvas canvas) {
-            action.call(canvas);
+            long currTime = System.currentTimeMillis();
+            if (currTime - lastCallTime >= intervalTime) {
+                action.call(canvas);
+                lastCallTime = currTime;
+            }
         }
 
         @Override

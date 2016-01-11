@@ -83,7 +83,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     private void stopGameThread() {
-        gameRunning = false;
+        drawThread.finish();
     }
 
 

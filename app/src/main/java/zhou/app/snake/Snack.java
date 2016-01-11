@@ -9,10 +9,12 @@ import com.squareup.otto.Subscribe;
 import java.util.ArrayList;
 import java.util.List;
 
+import zhou.app.snake.interfaces.Drawable;
+
 /**
  * Created by zhou on 16-1-4.
  */
-public class Snack {
+public class Snack implements Drawable {
 
     public List<Point> positions;
     public Point direction;
@@ -39,6 +41,7 @@ public class Snack {
         App.getApp().getBus().register(this);
     }
 
+    @Override
     public void draw(Canvas canvas) {
         for (Point p : positions) {
             canvas.drawRect(p.x * size, p.y * size, p.x * size + size, p.y * size + size, paint);
