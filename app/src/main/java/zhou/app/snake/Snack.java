@@ -9,12 +9,13 @@ import com.squareup.otto.Subscribe;
 import java.util.ArrayList;
 import java.util.List;
 
+import rx.functions.Action0;
 import zhou.app.snake.interfaces.Drawable;
 
 /**
  * Created by zhou on 16-1-4.
  */
-public class Snack implements Drawable {
+public class Snack implements Drawable,Action0 {
 
     public List<Point> positions;
     public Point direction;
@@ -86,5 +87,10 @@ public class Snack implements Drawable {
         if (direction.x * keyMap.direction.x == 0 && direction.y * keyMap.direction.y == 0) {
             direction = keyMap.direction;
         }
+    }
+
+    @Override
+    public void call() {
+        next();
     }
 }

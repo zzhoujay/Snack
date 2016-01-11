@@ -7,11 +7,13 @@ import android.graphics.Rect;
 import android.support.annotation.NonNull;
 import android.view.SurfaceHolder;
 
+import com.annimon.stream.Stream;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import rx.functions.Action0;
-import rx.functions.Action1;
 import zhou.app.snake.interfaces.Drawable;
 
 /**
@@ -26,6 +28,7 @@ public final class DrawThread implements Runnable {
     private final boolean showFps;
 
     private final List<DrawTask> drawTasks;
+    private final List<ActionTask> actionTasks;
     private Rect fpsRect;
     private boolean running;
     private Paint fpsPaint;
@@ -35,6 +38,7 @@ public final class DrawThread implements Runnable {
     public DrawThread(SurfaceHolder holder, int fps, int refreshColor, boolean showFps) {
         this.holder = holder;
         drawTasks = new ArrayList<>();
+        actionTasks = new ArrayList<>();
         running = true;
         interval_time = 1000 / fps;
         this.refreshColor = refreshColor;
@@ -62,7 +66,10 @@ public final class DrawThread implements Runnable {
     public void run() {
         while (running) {
             long startTime = System.currentTimeMillis();
+            // Call ActionTasks
+            Stream.of(actionTasks).forEach(ActionTask::call);
 
+            // Call DrawTasks
             synchronized (holder) {
                 synchronized (drawTasks) {
                     Canvas canvas = holder.lockCanvas();
@@ -74,6 +81,7 @@ public final class DrawThread implements Runnable {
                             }
                             drawTask.draw(canvas);
                         }
+                        // show fps
                         if (showFps)
                             drawFps(canvas);
                         holder.unlockCanvasAndPost(canvas);
@@ -83,6 +91,7 @@ public final class DrawThread implements Runnable {
 
             long endTime = System.currentTimeMillis();
 
+            // Draw Finish wait to next loop
             while (endTime - startTime <= interval_time) {
                 endTime = System.currentTimeMillis();
                 Thread.yield();
@@ -103,20 +112,26 @@ public final class DrawThread implements Runnable {
         running = false;
     }
 
-    public void addTask(Drawable task, int priority, int intervalTime) {
+    public void addDrawTask(Drawable task, int priority, int intervalTime) {
         drawTasks.add(new DrawTask(task, priority, intervalTime));
+        Collections.sort(drawTasks);
     }
 
-    public void addTask(Drawable task, int priority) {
+    public void addDrawTask(Drawable task, int priority) {
         drawTasks.add(new DrawTask(task, priority));
+        Collections.sort(drawTasks);
+
     }
 
-    public void addTask(Drawable task) {
+    public void addDrawTask(Drawable task) {
         drawTasks.add(new DrawTask(task));
+        Collections.sort(drawTasks);
+
     }
 
-    public void addTask(DrawTask drawTask) {
+    public void addDrawTask(DrawTask drawTask) {
         drawTasks.add(drawTask);
+        Collections.sort(drawTasks);
     }
 
     public void removeTask(Drawable task) {
@@ -130,6 +145,36 @@ public final class DrawThread implements Runnable {
 
     public void removeTask(DrawTask drawTask) {
         drawTasks.remove(drawTask);
+    }
+
+    public void addActionTask(ActionTask task) {
+        actionTasks.add(task);
+        Collections.sort(actionTasks);
+    }
+
+    public void addActionTask(Action0 task, int priority, int intervalTime) {
+        addActionTask(new ActionTask(task, priority, intervalTime));
+    }
+
+    public void addActionTask(Action0 task, int priority) {
+        addActionTask(new ActionTask(task, priority));
+    }
+
+    public void addActionTask(Action0 task) {
+        addActionTask(new ActionTask(task));
+    }
+
+    public void removeTask(Action0 task) {
+        for (ActionTask actionTask : actionTasks) {
+            if (actionTask.action.equals(task)) {
+                actionTasks.remove(actionTask);
+                return;
+            }
+        }
+    }
+
+    public void removeTask(ActionTask task) {
+        actionTasks.remove(task);
     }
 
     private static class DrawTask implements Comparable<DrawTask>, Drawable {
@@ -149,17 +194,21 @@ public final class DrawThread implements Runnable {
         public DrawTask(Drawable action, int priority) {
             this.action = action;
             this.priority = priority;
-            intervalTime = 100 / 3;
+            intervalTime = -1;
         }
 
         public DrawTask(Drawable action) {
             this.action = action;
             priority = 0;
-            intervalTime = 100 / 3;
+            intervalTime = -1;
         }
 
         @Override
         public void draw(Canvas canvas) {
+            if (intervalTime <= 0) {
+                action.draw(canvas);
+                return;
+            }
             long currTime = System.currentTimeMillis();
             if (currTime - lastCallTime >= intervalTime) {
                 action.draw(canvas);
@@ -191,4 +240,45 @@ public final class DrawThread implements Runnable {
         }
     }
 
+    private static class ActionTask implements Action0, Comparable<ActionTask> {
+
+        private Action0 action;
+        private int priority;
+        private int intervalTime;
+
+        private long lastCallTime;
+
+        public ActionTask(Action0 action, int priority, int intervalTime) {
+            this.action = action;
+            this.priority = priority;
+            this.intervalTime = intervalTime;
+        }
+
+        public ActionTask(Action0 action, int priority) {
+            this(action, priority, -1);
+        }
+
+        public ActionTask(Action0 action) {
+            this(action, 0, -1);
+        }
+
+        @Override
+        public void call() {
+            if (intervalTime <= 0) {
+                action.call();
+            } else {
+                long currTime = System.currentTimeMillis();
+                if (currTime - lastCallTime >= intervalTime) {
+                    action.call();
+                    lastCallTime = currTime;
+                }
+            }
+
+        }
+
+        @Override
+        public int compareTo(@NonNull ActionTask another) {
+            return priority - another.priority;
+        }
+    }
 }

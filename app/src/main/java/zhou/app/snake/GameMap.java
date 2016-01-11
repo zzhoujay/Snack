@@ -4,12 +4,13 @@ import android.graphics.Canvas;
 
 import java.util.HashSet;
 
+import rx.functions.Action0;
 import zhou.app.snake.interfaces.Drawable;
 
 /**
  * Created by zhou on 16-1-11.
  */
-public class GameMap implements Drawable {
+public class GameMap implements Drawable,Action0 {
 
     private int colNum, rowNum, blockSize;
 
@@ -46,4 +47,7 @@ public class GameMap implements Drawable {
         }
     }
 
+    @Override
+    public void call() {
+    }
 }
