@@ -1,6 +1,7 @@
 package zhou.app.snake;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
@@ -26,6 +27,8 @@ public class Snack implements Drawable, Callable {
     public int size;
     public Paint paint;
 
+    public Paint tempPaint;
+
     public int color;
 
     private Path path;
@@ -36,10 +39,15 @@ public class Snack implements Drawable, Callable {
         this.color = color;
 
         path = new Path();
+        path.setFillType(Path.FillType.EVEN_ODD);
 
         paint = new Paint();
         paint.setColor(color);
         paint.setStrokeWidth(size);
+        paint.setStyle(Paint.Style.STROKE);
+
+        tempPaint=new Paint();
+        tempPaint.setColor(Color.CYAN);
 
         body = new LinkedList<>();
         body.add(new Point(5, 5));
@@ -48,7 +56,7 @@ public class Snack implements Drawable, Callable {
 
         App.getApp().getBus().register(this);
 
-//        analyze();
+        analyze();
     }
 
     @Override
@@ -56,8 +64,10 @@ public class Snack implements Drawable, Callable {
         for (Point p : body) {
             int xx = p.x * size;
             int yy = p.y * size;
-            canvas.drawRect(xx, yy, xx + size, yy + size, paint);
+            canvas.drawRect(xx, yy, xx + size, yy + size, tempPaint);
         }
+
+        canvas.drawPath(path, paint);
     }
 
     public void next() {
@@ -66,7 +76,7 @@ public class Snack implements Drawable, Callable {
         end.set(head.x + direction.x, head.y + direction.y);
         body.addFirst(end);
 
-//        analyze();
+        analyze();
 
     }
 
@@ -96,14 +106,16 @@ public class Snack implements Drawable, Callable {
 
         path.reset();
 
+        int halfSize = this.size / 2;
+
         for (int i = 0, size = points.size(); i < size; i++) {
             Point p = points.get(i);
             if (i == 0) {
-                path.moveTo(p.x * size, p.y * size);
-            } else if (i == size - 1) {
-                path.setLastPoint(p.x * size, p.y * size);
+                path.moveTo(p.x * this.size+halfSize, p.y * this.size+halfSize);
+//            } else if (i == size - 1) {
+//                path.setLastPoint(p.x * size, p.y * size);
             } else {
-                path.lineTo(p.x * size, p.y * size);
+                path.lineTo(p.x * this.size+halfSize, p.y * this.size+halfSize);
             }
         }
     }
