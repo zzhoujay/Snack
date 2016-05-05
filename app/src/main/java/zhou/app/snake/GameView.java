@@ -8,6 +8,8 @@ import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import rx.functions.Action1;
+
 /**
  * Created by zhou on 16-1-4.
  */
@@ -20,6 +22,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     private Paint paint;
     private Snack snack;
     private int colNum, rowNum, blockSize;
+    private final DrawThread drawThread;
 
     public GameView(Context context) {
         this(context, null, 0);
@@ -35,6 +38,9 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         holder.addCallback(this);
         paint = new Paint();
         paint.setColor(Color.RED);
+
+        drawThread = new DrawThread(holder, 30);
+
     }
 
     @Override
@@ -48,6 +54,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
         gameRunning = true;
         startGameThread();
+
+        drawThread.addTask(snackTask, 1);
     }
 
     @Override
@@ -82,31 +90,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         gameRunning = false;
     }
 
+    private Action1<Canvas> snackTask = this::drawGame;
 
-    private final Runnable drawThread = new Runnable() {
-
-        @Override
-        public void run() {
-
-            while (gameRunning) {
-                long startTime = System.currentTimeMillis();
-
-                synchronized (holder) {
-                    Canvas canvas = holder.lockCanvas();
-                    canvas.drawColor(Color.WHITE);
-                    drawGame(canvas);
-                    holder.unlockCanvasAndPost(canvas);
-                }
-
-                long endTime = System.currentTimeMillis();
-
-                while (endTime - startTime < interval_time) {
-                    endTime = System.currentTimeMillis();
-                    Thread.yield();
-                }
-            }
-
-
-        }
-    };
 }

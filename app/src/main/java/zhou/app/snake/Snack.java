@@ -6,20 +6,21 @@ import android.graphics.Point;
 
 import com.squareup.otto.Subscribe;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by zhou on 16-1-4.
  */
 public class Snack {
 
-    public List<Point> positions;
     public Point direction;
     public int size;
     public Paint paint;
 
-    public int color;
+
+    private SnackNode head, tail;
+
+    private boolean directionChanged = false;
+
+    private int color;
 
     public Snack(Point direction, int size, int color) {
         this.direction = direction;
@@ -29,37 +30,60 @@ public class Snack {
         paint = new Paint();
         paint.setColor(color);
 
-        positions = new ArrayList<>();
-        positions.add(new Point(5, 5));
-        positions.add(new Point(5, 6));
-        positions.add(new Point(5, 7));
+        head = new SnackNode(7, 7, size);
+        tail = new SnackNode(7, 52, size);
+
+        head.setNext(tail);
+        tail.setPrev(head);
 
         App.getApp().getBus().register(this);
     }
 
     public void draw(Canvas canvas) {
-        for (Point p : positions) {
-            canvas.drawRect(p.x * size, p.y * size, p.x * size + size, p.y * size + size, paint);
-        }
+        SnackNode node = head;
+        do {
+            canvas.drawRect(node.node, paint);
+        } while ((node = node.getNext()) != null);
     }
 
     public void next() {
-        Point temp = null;
-        for (int i = positions.size() - 1; i >= 0; i--) {
-            Point p = positions.get(i);
-            if (i == 0) {
-                p.set(temp.x + direction.x, temp.y + direction.y);
-            } else {
-                temp = positions.get(i - 1);
-                p.set(temp.x, temp.y);
-            }
+        if (directionChanged) {
+            SnackNode newHead = new SnackNode(head.getX() + direction.x, head.getY() + direction.y, size, head);
+            head.setPrev(newHead);
+            head = newHead;
+            directionChanged = false;
+        } else {
+            head.offset(direction.x, direction.y);
         }
+
+        SnackNode tailPrev = tail.getPrev();
+        int dx = 0, dy = 0;
+        boolean merge;
+        if (tail.getY() == tailPrev.getY()) {
+            dx = tailPrev.getX() - tail.getX();
+            merge = Math.abs(dx) <= 1;
+            dx = dx / Math.abs(dx);
+        } else {
+            dy = tailPrev.getY() - tail.getY();
+            merge = Math.abs(dy) <= 1;
+            dy = dy / Math.abs(dy);
+        }
+
+        if (merge) {
+            tailPrev.setNext(null);
+            tail = tailPrev;
+        } else {
+            tail.offset(dx, dy);
+            tailPrev.setNext(tail);
+        }
+
     }
 
     @Subscribe
     public void changeDirection(KeyMap keyMap) {
         if (direction.x * keyMap.direction.x == 0 && direction.y * keyMap.direction.y == 0) {
             direction = keyMap.direction;
+            directionChanged = true;
         }
     }
 }
