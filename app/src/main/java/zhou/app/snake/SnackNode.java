@@ -127,5 +127,7 @@ public class SnackNode{
         this.size = size;
     }
 
-
+    public Point getPosition() {
+        return position;
+    }
 }

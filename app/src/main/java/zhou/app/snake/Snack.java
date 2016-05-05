@@ -3,15 +3,19 @@ package zhou.app.snake;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.provider.Settings;
 
 import com.squareup.otto.Subscribe;
+
+import zhou.app.snake.interfaces.Callable;
+import zhou.app.snake.interfaces.Drawable;
 
 /**
  * Created by zhou on 16-1-4.
  * 蛇
  * 采用记录蛇的每个节点的方式记录蛇，即记录每个拐角点
  */
-public class Snack {
+public class Snack implements Drawable, Callable {
 
     public Point direction;
     public int size;
@@ -22,7 +26,10 @@ public class Snack {
 
     private boolean directionChanged = false;
 
-    private int color;
+    public int color;
+
+    private int length;
+
 
     public Snack(Point direction, int size, int color) {
         this.direction = direction;
@@ -35,17 +42,23 @@ public class Snack {
         head = new SnackNode(7, 7, size);
         tail = new SnackNode(7, 52, size);
 
+        length = 52 - 7;
+
         head.setNext(tail);
         tail.setPrev(head);
 
         App.getApp().getBus().register(this);
+
     }
 
+    @Override
     public void draw(Canvas canvas) {
+        long lastTime = System.nanoTime();
         SnackNode node = head;
         do {
             canvas.drawRect(node.node, paint);
         } while ((node = node.getNext()) != null);
+        System.out.println("snack use time:"+(System.nanoTime()-lastTime));
     }
 
     /**
@@ -73,6 +86,7 @@ public class Snack {
             dy = tailPrev.getY() - tail.getY();
             merge = Math.abs(dy) <= 1;
             dy = dy / Math.abs(dy);
+
         }
         // 如果需要合并倒数第二个节点和尾节点则进行合并
         if (merge) {
@@ -85,11 +99,36 @@ public class Snack {
 
     }
 
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    public void growUp() {
+    }
+
+    public int length() {
+        return length;
+    }
+
     @Subscribe
     public void changeDirection(KeyMap keyMap) {
         if (direction.x * keyMap.direction.x == 0 && direction.y * keyMap.direction.y == 0) {
             direction = keyMap.direction;
             directionChanged = true;
         }
+    }
+
+    @Override
+    public void call() {
+        next();
+    }
+
+    public SnackNode getHead() {
+        return head;
+    }
+
+    public SnackNode getTail() {
+        return tail;
     }
 }

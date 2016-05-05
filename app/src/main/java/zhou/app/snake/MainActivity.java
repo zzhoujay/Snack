@@ -1,18 +1,25 @@
 package zhou.app.snake;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.WindowManager;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
     private int lastX = 0;
     private int lastY = 0;
     private long lastTime;
+    private boolean exitFlag;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         super.onCreate(savedInstanceState);
         setContentView(new GameView(this));
 
@@ -36,6 +43,23 @@ public class MainActivity extends AppCompatActivity {
                 return true;
         }
         return super.onTouchEvent(event);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (exitFlag) {
+                finish();
+            }else {
+                Toast.makeText(this,R.string.notice_exit,Toast.LENGTH_SHORT).show();
+                exitFlag=true;
+                new Handler().postDelayed(()->{
+                    exitFlag=false;
+                },2000);
+            }
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     private void handleTouchEvent(float vx, float vy) {
