@@ -8,6 +8,8 @@ import com.squareup.otto.Subscribe;
 
 /**
  * Created by zhou on 16-1-4.
+ * 蛇
+ * 采用记录蛇的每个节点的方式记录蛇，即记录每个拐角点
  */
 public class Snack {
 
@@ -46,7 +48,11 @@ public class Snack {
         } while ((node = node.getNext()) != null);
     }
 
+    /**
+     * 下一步，蛇前进
+     */
     public void next() {
+        // 如果方向被改变过了的话就会产生一个拐角点，因此需要创建一个节点
         if (directionChanged) {
             SnackNode newHead = new SnackNode(head.getX() + direction.x, head.getY() + direction.y, size, head);
             head.setPrev(newHead);
@@ -68,7 +74,7 @@ public class Snack {
             merge = Math.abs(dy) <= 1;
             dy = dy / Math.abs(dy);
         }
-
+        // 如果需要合并倒数第二个节点和尾节点则进行合并
         if (merge) {
             tailPrev.setNext(null);
             tail = tailPrev;
