@@ -18,9 +18,7 @@ import zhou.app.snake.interfaces.Drawable;
 public class GameMap implements Drawable, Callable {
 
     private Random random;
-
     private int colNum, rowNum, blockSize;
-
     private Snack snack;
     private HashSet<Food> foods;
 
@@ -59,8 +57,8 @@ public class GameMap implements Drawable, Callable {
 
     @Override
     public void call() {
-        Point point = snack.getHead().getPosition();
-        Stream.of(foods).filter(value -> value.getPosition().equals(point.x, point.y)).forEach(value1 -> {
+        Point head = snack.getHead().getPosition();
+        Stream.of(foods).filter(value -> value.getPosition().equals(head.x, head.y)).forEach(value1 -> {
             snack.growUp();
             value1.life--;
             if (value1.life <= 0) {

@@ -3,7 +3,6 @@ package zhou.app.snake;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Point;
-import android.provider.Settings;
 
 import com.squareup.otto.Subscribe;
 
@@ -25,6 +24,7 @@ public class Snack implements Drawable, Callable {
     private SnackNode head, tail;
 
     private boolean directionChanged = false;
+    private boolean growUpFlag = false;
 
     public int color;
 
@@ -40,7 +40,7 @@ public class Snack implements Drawable, Callable {
         paint.setColor(color);
 
         head = new SnackNode(7, 7, size);
-        tail = new SnackNode(7, 52, size);
+        tail = new SnackNode(7, 10, size);
 
         length = 52 - 7;
 
@@ -53,12 +53,10 @@ public class Snack implements Drawable, Callable {
 
     @Override
     public void draw(Canvas canvas) {
-        long lastTime = System.nanoTime();
         SnackNode node = head;
         do {
             canvas.drawRect(node.node, paint);
         } while ((node = node.getNext()) != null);
-        System.out.println("snack use time:"+(System.nanoTime()-lastTime));
     }
 
     /**
@@ -73,6 +71,12 @@ public class Snack implements Drawable, Callable {
             directionChanged = false;
         } else {
             head.offset(direction.x, direction.y);
+        }
+
+        if (growUpFlag) {
+            growUpFlag = false;
+            length++;
+            return;
         }
 
         SnackNode tailPrev = tail.getPrev();
@@ -105,6 +109,7 @@ public class Snack implements Drawable, Callable {
     }
 
     public void growUp() {
+        growUpFlag = true;
     }
 
     public int length() {

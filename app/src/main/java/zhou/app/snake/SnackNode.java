@@ -7,7 +7,7 @@ import android.graphics.Rect;
 /**
  * Created by zhou on 16-5-5.
  */
-public class SnackNode{
+public class SnackNode {
 
     public Rect node;
     private Point position;
